@@ -1,0 +1,31 @@
+{
+  "name": "yasd",
+  "version": "0.1.0",
+  "description": "Yet another lightweight JS resource downloader",
+  "main": "./dist/yasd.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "keywords": [
+    "javascript",
+    "script",
+    "loader",
+    "dependency",
+    "resource"
+  ],
+  "author": "AitorC <aitor.calde@gmail.com> (https://github.com/AitorC)",
+  "repository" : {
+          "type" : "git",
+          "url" : "https://github.com/AitorC/yasd"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "grunt": "^1.0.1",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-exec": "^1.0.0",
+    "mocha": "^2.5.3",
+    "mocha-phantomjs": "^4.0.2",
+    "sinon": "^1.17.4"
+  }
+}

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <!-- encoding must be set for mocha's special characters to render properly -->
+        <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+        <title>Testuing suite</title>
+        <script></script>
+        <script src="../node_modules/mocha/mocha.js"></script>
+        <script src="../node_modules/chai/chai.js"></script>
+        <script src="../node_modules/sinon/pkg/sinon.js"></script>
+        <style>
+            iframe {
+                display: none
+            }
+        </style>
+    </head>
+    <body>
+        <div id="mocha">
+        </div>
+        <script>
+        function addScript(doc, src, loadCb) {
+            var s = doc.createElement('script'); // Create a script element
+            s.type = 'text/javascript'; // optional in html5
+            s.async = true;                           // asynchronous? true/false
+            s.src = src;
+            s.onload = s.onreadystatechange = loadCb;
+            s.onerror = loadCb;
+            doc.body.appendChild(s);
+        }
+        </script>
+        <script>
+        mocha.ui('bdd');
+        var assert = chai.assert;
+        var expect = chai.expect;
+        describe('Yasd Library', function() {
+            describe('Yasd basic functionality', function() {
+                //Simple shortcuts
+                var win;
+                var doc;
+                var iframe;
+                beforeEach(function(done) {
+                    iframe = document.createElement('iframe');
+                    iframe.src = 'about:blank';
+                    iframe.onload = function() {
+                        win = iframe.contentWindow;
+                        doc = win.document;
+                        addScript(doc, '../src/yasd.js', function() {
+                            done();
+                        });
+                    };
+                    document.body.appendChild(iframe);
+                });
+
+                afterEach(function() {
+                    document.body.removeChild(iframe);
+                });
+
+                describe('Yasd declaration and simple behaviour', function() {
+                    it('Yasd should be a function', function() {
+                        assert.isFunction(win.yasd);
+                    });
+
+                    it('Yasd adds script tag to header when called', function() {
+                        win.yasd('./test.js');
+                        assert(!!doc.querySelector('script[src="./test.js"]'));
+                    });
+
+                    it('Given a callback Yasd should call with undefined to it successing' +
+                        'ataching a script', function(done) {
+                        win.yasd('./test.js', function(err) {
+                            expect(err).to.be.undefined;
+                            done();
+                        });
+                    });
+
+                    it('Given a callback Yasd should call with undefined to it successing' +
+                        'ataching a script and the script is actually executed', function(done) {
+                        var spy = sinon.spy(win.console, 'log');
+                        win.yasd('./test2.js', function(err) {
+                            expect(err).to.be.undefined;
+                            expect(spy.withArgs('test').calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    it('Given a callback Yasd should call with true to it on error' +
+                        'ataching a non existing script', function(done) {
+                        win.yasd('./testsss.js', function(err) {
+                            expect(err).to.be.true;
+                            done();
+                        });
+                    });
+
+                    it('Given a call to Yasd it should return itself', function() {
+                        expect(win.yasd('./test.js')).to.be.equal(win.yasd);
+                    });
+                });
+
+                describe('Yasd should download when using with arrays of scripts', function() {
+                    it('Given a callback Yasd should call with undefined to it when no erros found', function(done) {
+                        win.yasd(['./test.js', './test2.js'], function(err) {
+                            expect(err).to.be.undefined;
+                            done();
+                        });
+                        assert(!!doc.querySelector('script[src="./test.js"]'));
+                        assert(!!doc.querySelector('script[src="./test2.js"]'));
+                    });
+
+                    it('Given a callback Yasd should call with undefined to it when erros found', function(done) {
+                        win.yasd(['./test.js', './test3.js'], function(err) {
+                            expect(err).to.be.true;
+                            done();
+                        });
+                        assert(!!doc.querySelector('script[src="./test.js"]'));
+                        assert(!!doc.querySelector('script[src="./test3.js"]'));
+                    });
+                });
+
+                describe('Yasd identifies downloads using IDs', function() {
+                    it('Given no ID Yasd should use the script URL as id', function(done) {
+                        win.yasd('./test.js').on('./test.js', function(err) {
+                            expect(err).to.be.undefined;
+                            done();
+                        });
+                    });
+
+                    it('Given an ID for a script Yasd should identify it correctly', function(done) {
+                        win.yasd('./test.js', 'myTest').on('myTest', function(err) {
+                            expect(err).to.be.undefined;
+                            done();
+                        });
+                    });
+
+                    it('Given an ID for an array of scripts Yasd should identify them correctly', function(done) {
+                        win.yasd(['./test.js', './test2.js'], 'mySecondTest').on('mySecondTest', function(err) {
+                            expect(err).to.be.undefined;
+                            done();
+                        });
+                    });
+
+                    it('Given an ID for an array of scripts Yasd should identify them correctly' +
+                        'even with errors', function(done) {
+                        win.yasd(['./test.js', './test3.js'], 'failedDownload').on('failedDownload', function(err) {
+                            expect(err).to.be.true;
+                            done();
+                        });
+                    });
+                });
+
+                describe('Multitple calls to Yasd', function() {
+                    it('Given a script when Yasd is called multiple times with the same script' +
+                        'it should add only one to the body', function() {
+                        win.yasd('./test.js');
+                        win.yasd('./test.js');
+                        expect(doc.querySelectorAll('script[src="./test.js"]').length).to.be.equal(1);
+                    });
+
+                    it('Given a script when Yasd is called multiple times with the same script' +
+                        'it should execute only one script', function(done) {
+                        var spy = sinon.spy(win.console, 'log');
+                        win.yasd('./test2.js');
+                        win.yasd('./test2.js');
+                        win.yasd('./test2.js', function(err) {
+                            expect(err).to.be.undefined;
+                            expect(spy.withArgs('test').calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    it('Given a script when Yasd is called multiple times with the same script' +
+                        'it should call each callback with true', function(done) {
+                        var spy1 = sinon.spy();
+                        var spy2 = sinon.spy();
+                        win.yasd.on('./test.js', function() {
+                            expect(spy1.withArgs().calledOnce).to.be.true;
+                            expect(spy2.withArgs().calledOnce).to.be.true;
+                            done();
+                        });
+                        win.yasd('./test.js', spy1);
+                        win.yasd('./test.js', spy2);
+                    });
+                });
+
+                describe('Yas with yasd.path populated', function() {
+                    it('Given yasd.path has the value "scripts/" Yasd should add script with this path', function() {
+                        win.yasd.path = 'scripts/';
+                        win.yasd('test.js');
+                        expect(doc.querySelectorAll('script[src="scripts/test.js"]').length).to.be.equal(1);
+                    });
+
+                    it('Given yasd.path has the value "scripts/" Yasd should not add path if called' +
+                        'with a complete url wihtout protocol', function() {
+                        win.yasd.path = 'scripts/';
+                        win.yasd('//test.js');
+                        //CAUTION this wil try to load file://test.js, but was the only way to actually test this
+                        expect(doc.querySelectorAll('script[src="//test.js"]').length).to.be.equal(1);
+                    });
+
+                    it('Given yasd.path has the value "scripts/" Yasd should not add path if called' +
+                        'with a complete url with http protocol', function() {
+                        win.yasd.path = 'scripts/';
+                        win.yasd('http://my.host.com/test.js');
+                        expect(doc.querySelectorAll('script[src="http://my.host.com/test.js"]').length).to.be.equal(1);
+                    });
+
+                    it('Given yasd.path has the value "scripts/" Yasd should not add path if called' +
+                        'with a complete url with https protocol', function() {
+                        win.yasd.path = 'scripts/';
+                        win.yasd('https://my.host.com/test.js');
+                        expect(doc.querySelectorAll('script[src="https://my.host.com/test.js"]').length).to.be.equal(1);
+                    });
+                });
+
+                describe('Yasd with yasd.map populated', function() {
+                    it('Given yasd.map is declared yasd should try to use it to load script with its aliases', function() {
+                        win.yasd.map = {
+                            'test1': 'test1.js',
+                            'test2': 'test2.js',
+                            'theAnswerToAll': '42.js'
+                        };
+                        win.yasd('theAnswerToAll');
+                        win.yasd('test1');
+                        expect(doc.querySelectorAll('script[src="42.js"]').length).to.be.equal(1);
+                        expect(doc.querySelectorAll('script[src="test1.js"]').length).to.be.equal(1);
+                    });
+
+                    it('Given yasd.map and yasd.path are declared yasd should try to use it to load script' +
+                        'with its aliases and path', function() {
+                        win.yasd.map = {
+                            'theAnswerToAll': '42.js'
+                        };
+                        win.yasd.path = 'scripts/';
+                        win.yasd('theAnswerToAll');
+                        expect(doc.querySelectorAll('script[src="scripts/42.js"]').length).to.be.equal(1);
+                    });
+                });
+                describe('Yasd should functionalities all togheter', function() {
+                    it('Given a callback Yasd should call with undefined to it successing' +
+                        'ataching a script and the script is actually executed', function(done) {
+                        var spy = sinon.spy(win.console, 'log');
+                        win.yasd.map = {
+                            'theAnswerToAll': 'yetAnotherTestFile.js'
+                        };
+                        win.yasd.path = 'scripts/';
+                        win.yasd('theAnswerToAll', function(err) {
+                            expect(err).to.be.undefined;
+                            expect(spy.withArgs('worked!').calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+                    it('Given a callback Yasd should call with undefined to it successing' +
+                        'ataching a script and the script is actually executed', function(done) {
+                        var spy = sinon.spy(win.console, 'log');
+                        win.yasd.map = {
+                            'theAnswerToAll': 'nonExistingScript.js'
+                        };
+                        win.yasd.path = 'scripts/';
+                        win.yasd('theAnswerToAll', function(err) {
+                            expect(err).to.be.true;
+                            done();
+                        });
+                        expect(doc.querySelectorAll('script[src="scripts/nonExistingScript.js"]').length).to.be.equal(1);
+                    });
+                });
+            });
+        });
+        mocha.run();
+        </script>
+    </body>
+</html>
