@@ -117,6 +117,10 @@
                 return yasd;
             });
         } else {
+            if (window.yasd) {
+                yasd.path = window.yasd.path || '';
+                yasd.map = window.yasd.map || undefined;
+            }
             window.yasd = yasd;
         }
     }
