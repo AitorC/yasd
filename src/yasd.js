@@ -12,8 +12,11 @@
         s.src = (yasd.path && !(/^(http(s)?:)?\/\//).test(src) ? yasd.path : '') + src;
         s.onload = loadCb;
         s.onerror = errorCb;
-        var fs = document.getElementsByTagName('script')[0];  // Get the first script
-        fs.parentNode.insertBefore(s, fs);
+        //Send to the end of the queue
+        setTimeout(function() {
+            var fs = document.getElementsByTagName('script')[0];  // Get the first script
+            fs.parentNode.insertBefore(s, fs);
+        }, 0);
     }
 
     function markAsLoaded(id, hasErrors) {

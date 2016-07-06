@@ -28,6 +28,9 @@
             s.onerror = loadCb;
             doc.body.appendChild(s);
         }
+        function delay(fnc) {
+            setTimeout(fnc, 0);
+        }
         </script>
         <script>
         mocha.ui('bdd');
@@ -61,9 +64,12 @@
                         assert.isFunction(win.yasd);
                     });
 
-                    it('Yasd adds script tag to header when called', function() {
+                    it('Yasd adds script tag to header when called', function(done) {
                         win.yasd('./test.js');
-                        assert(!!doc.querySelector('script[src="./test.js"]'));
+                        delay(function() {
+                            assert(!!doc.querySelector('script[src="./test.js"]'));
+                            done();
+                        });
                     });
 
                     it('Given a callback Yasd should call with undefined to it successing' +
@@ -98,13 +104,20 @@
                 });
 
                 describe('Yasd should download when using with arrays of scripts', function() {
+                    it('Given an Array of scripts yasd should add them to the header', function(done) {
+                        win.yasd(['./test.js', './test2.js']);
+                        delay(function() {
+                            assert(!!doc.querySelector('script[src="./test.js"]'));
+                            assert(!!doc.querySelector('script[src="./test2.js"]'));
+                            done();
+                        });
+                    });
+
                     it('Given a callback Yasd should call with undefined to it when no erros found', function(done) {
                         win.yasd(['./test.js', './test2.js'], function(err) {
                             expect(err).to.be.undefined;
                             done();
                         });
-                        assert(!!doc.querySelector('script[src="./test.js"]'));
-                        assert(!!doc.querySelector('script[src="./test2.js"]'));
                     });
 
                     it('Given a callback Yasd should call with undefined to it when erros found', function(done) {
@@ -112,8 +125,6 @@
                             expect(err).to.be.true;
                             done();
                         });
-                        assert(!!doc.querySelector('script[src="./test.js"]'));
-                        assert(!!doc.querySelector('script[src="./test3.js"]'));
                     });
                 });
 
@@ -150,10 +161,13 @@
 
                 describe('Multitple calls to Yasd', function() {
                     it('Given a script when Yasd is called multiple times with the same script' +
-                        'it should add only one to the body', function() {
+                        'it should add only one to the body', function(done) {
                         win.yasd('./test.js');
                         win.yasd('./test.js');
-                        expect(doc.querySelectorAll('script[src="./test.js"]').length).to.be.equal(1);
+                        delay(function() {
+                            expect(doc.querySelectorAll('script[src="./test.js"]').length).to.be.equal(1);
+                            done();
+                        });
                     });
 
                     it('Given a script when Yasd is called multiple times with the same script' +
@@ -183,37 +197,49 @@
                 });
 
                 describe('Yas with yasd.path populated', function() {
-                    it('Given yasd.path has the value "scripts/" Yasd should add script with this path', function() {
+                    it('Given yasd.path has the value "scripts/" Yasd should add script with this path', function(done) {
                         win.yasd.path = 'scripts/';
                         win.yasd('test.js');
-                        expect(doc.querySelectorAll('script[src="scripts/test.js"]').length).to.be.equal(1);
+                        delay(function() {
+                            expect(doc.querySelectorAll('script[src="scripts/test.js"]').length).to.be.equal(1);
+                            done();
+                        });
                     });
 
                     it('Given yasd.path has the value "scripts/" Yasd should not add path if called' +
-                        'with a complete url wihtout protocol', function() {
+                        'with a complete url wihtout protocol', function(done) {
                         win.yasd.path = 'scripts/';
                         win.yasd('//test.js');
                         //CAUTION this wil try to load file://test.js, but was the only way to actually test this
-                        expect(doc.querySelectorAll('script[src="//test.js"]').length).to.be.equal(1);
+                        delay(function() {
+                            expect(doc.querySelectorAll('script[src="//test.js"]').length).to.be.equal(1);
+                            done();
+                        });
                     });
 
                     it('Given yasd.path has the value "scripts/" Yasd should not add path if called' +
-                        'with a complete url with http protocol', function() {
+                        'with a complete url with http protocol', function(done) {
                         win.yasd.path = 'scripts/';
                         win.yasd('http://my.host.com/test.js');
-                        expect(doc.querySelectorAll('script[src="http://my.host.com/test.js"]').length).to.be.equal(1);
+                        delay(function() {
+                            expect(doc.querySelectorAll('script[src="http://my.host.com/test.js"]').length).to.be.equal(1);
+                            done();
+                        });
                     });
 
                     it('Given yasd.path has the value "scripts/" Yasd should not add path if called' +
-                        'with a complete url with https protocol', function() {
+                        'with a complete url with https protocol', function(done) {
                         win.yasd.path = 'scripts/';
                         win.yasd('https://my.host.com/test.js');
-                        expect(doc.querySelectorAll('script[src="https://my.host.com/test.js"]').length).to.be.equal(1);
+                        delay(function() {
+                            expect(doc.querySelectorAll('script[src="https://my.host.com/test.js"]').length).to.be.equal(1);
+                            done();
+                        });
                     });
                 });
 
                 describe('Yasd with yasd.map populated', function() {
-                    it('Given yasd.map is declared yasd should try to use it to load script with its aliases', function() {
+                    it('Given yasd.map is declared yasd should try to use it to load script with its aliases', function(done) {
                         win.yasd.map = {
                             'test1': 'test1.js',
                             'test2': 'test2.js',
@@ -221,18 +247,24 @@
                         };
                         win.yasd('theAnswerToAll');
                         win.yasd('test1');
-                        expect(doc.querySelectorAll('script[src="42.js"]').length).to.be.equal(1);
-                        expect(doc.querySelectorAll('script[src="test1.js"]').length).to.be.equal(1);
+                        delay(function() {
+                            expect(doc.querySelectorAll('script[src="42.js"]').length).to.be.equal(1);
+                            expect(doc.querySelectorAll('script[src="test1.js"]').length).to.be.equal(1);
+                            done();
+                        });
                     });
 
                     it('Given yasd.map and yasd.path are declared yasd should try to use it to load script' +
-                        'with its aliases and path', function() {
+                        'with its aliases and path', function(done) {
                         win.yasd.map = {
                             'theAnswerToAll': '42.js'
                         };
                         win.yasd.path = 'scripts/';
                         win.yasd('theAnswerToAll');
-                        expect(doc.querySelectorAll('script[src="scripts/42.js"]').length).to.be.equal(1);
+                        delay(function() {
+                            expect(doc.querySelectorAll('script[src="scripts/42.js"]').length).to.be.equal(1);
+                            done();
+                        });
                     });
                 });
                 describe('Yasd should functionalities all togheter', function() {
@@ -260,7 +292,6 @@
                             expect(err).to.be.true;
                             done();
                         });
-                        expect(doc.querySelectorAll('script[src="scripts/nonExistingScript.js"]').length).to.be.equal(1);
                     });
                 });
             });
