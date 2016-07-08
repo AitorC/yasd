@@ -31,6 +31,12 @@
     }
 
     /**
+     * Injects one or more scripts into the document header and calls th given callback (if any)
+     * whenever it is ready (or issued an error). The script can also be aliased by specigying
+     * and id or using the yasd.map property to map aliases with scripts. Furthermore,
+     * more callbacks can be added using yas.on passing the alias, id or script path
+     * specified when this function was called.
+     *
      * @param {String|Array} script (Or alias if yasd.map is declared)
      * @param {String|Function} idcb An id for the download or a callback function for download completion.
      *        <b>Please note:</b> If an id is specified and an alias is used, id will be completely ignored
@@ -93,6 +99,9 @@
     };
 
     /**
+     * This function specifies a callback (or adds it to the list of callbacks) for a given
+     * script, id or alias used at yasd function.
+     *
      * @param {String} id Id or path (or URL) of the resource
      * @param {Function} fnc Callback to be executed when the resource is ready (or an error has occurred)
      */
