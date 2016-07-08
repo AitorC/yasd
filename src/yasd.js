@@ -26,7 +26,7 @@
         //Check if making calls in order makes sense or not
         //Actual is calling in reverse declaration order
         while (cb = record.callbacks.pop()) {
-            cb.apply(null, hasErrors ? [hasErrors] : []);
+            (cb || Function.prototype).apply(null, hasErrors ? [hasErrors] : []);
         }
     }
 
@@ -114,6 +114,8 @@
             };
         } else if (record.state === 0) {
             record.callbacks.push(fnc);
+        } else if (record.state === 1) {
+            fnc();
         }
         return yasd;
     };

@@ -101,6 +101,16 @@
                     it('Given a call to Yasd it should return itself', function() {
                         expect(win.yasd('./test.js')).to.be.equal(win.yasd);
                     });
+
+                    it('Given a script loaded with yas successfuly it should call immediatly ' +
+                        'any .on calls with the same id', function(done) {
+                        var spy = sinon.spy();
+                        win.yasd('test.js', function() {
+                            win.yasd.on('test.js', spy);
+                            expect(spy.withArgs().calledOnce).to.be.true;
+                            done();
+                        });
+                    });
                 });
 
                 describe('Yasd should download when using with arrays of scripts', function() {
@@ -281,6 +291,7 @@
                             done();
                         });
                     });
+
                     it('Given a callback Yasd should call with undefined to it successing' +
                         'ataching a script and the script is actually executed', function(done) {
                         var spy = sinon.spy(win.console, 'log');
