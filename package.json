@@ -1,6 +1,6 @@
 {
   "name": "yasd",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Yet another lightweight JS resource downloader",
   "main": "src/yasd.js",
   "scripts": {
