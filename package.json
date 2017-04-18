@@ -2,7 +2,7 @@
   "name": "yasd",
   "version": "0.1.0",
   "description": "Yet another lightweight JS resource downloader",
-  "main": "./dist/yasd.js",
+  "main": "src/yasd.js",
   "scripts": {
     "test": "grunt test"
   },
